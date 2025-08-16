@@ -1,17 +1,16 @@
+# ваш код
+from turtle import *
+from random import randint
 
-print('Ласкаво просимо!', student_card)
+ht()
 
-while True:
-    answer = int(input('Особистий кабінет: 1 - взяти, 2 - повернути, 3 - додому'))
 
-    if answer == 1:
-        title = input('Введіть назву:')
-        student_card['борг'] = title
-    elif answer == 2:
-        if 'борг' in student_card:
-            del student_card['борг']
-    elif answer == 3:
-        break
-
-    print('Картка читача:', student_card)
-print('Чекаємо на вас:', student_card)
+def create_t(x, y, h, col):
+    t = Turtle()
+    t.color(col)
+    t.shape("turtle")
+    t.setheading(h)
+    t.pu()
+    t.goto(x, y)
+    t.pd()
+    return t
