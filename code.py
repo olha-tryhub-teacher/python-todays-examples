@@ -1,16 +1,3 @@
-# ваш код
-from turtle import *
-from random import randint
-
-ht()
-
-
-def create_t(x, y, h, col):
-    t = Turtle()
-    t.color(col)
-    t.shape("turtle")
-    t.setheading(h)
-    t.pu()
-    t.goto(x, y)
-    t.pd()
-    return t
+# 1.Ігрове поле
+screen = getscreen()
+screen.bgcolor("yellow")
