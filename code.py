@@ -1,13 +1,27 @@
 from turtle import *
 
 screen = getscreen()
+screen.bgcolor("green")
+t = Turtle()
 
 
-def get_cor(x, y):
-    print("X:", x)
-    print("Y:", y)
+def zone(x, y, count):
+    t.clear()
+    screen.bgcolor("green")
+    t.penup()
+    t.goto(x, y)
+    t.pendown()
+    t.circle(75, 360, count)
 
 
-screen.onclick(get_cor)
+# ваш код
+def draw(x, y):
+    if x <= -100:
+        zone(-150, 0, 360)
+    elif -100 < x <= 100:
+        zone(-50, 0, 4)
+    elif 100 < x:
+        zone(50, 0, 3)
 
-ht()
+
+screen.onclick(draw)
