@@ -1,46 +1,69 @@
-# ваш код
-from turtle import *
-from random import randint
+from fastapi import FastAPI, HTTPException, Query
+from pydantic import BaseModel, Field
 
+app = FastAPI()
 
-def create_turtle(x, y, sh, col):
-    t = Turtle()
-    t.pu()
-    t.goto(x, y)
-    t.width(10)
-    t.shape(sh)
-    t.color(col)
-    return t
+# Пустий словник для збереження даних
+library = {}
 
+# Модель для книги з використанням Annotated та валідації
+class Book(BaseModel):
+    title: str = Field(...,
+                       title="Назва книги",
+                       description="Назва книги повинна бути вказана",
+                       min_length=1)
+    author: str = Field(...,
+                        title="Автор",
+                        description="Ім'я автора",
+                        min_length=3,
+                        max_length=50)
+    pages: int = Field(...,
+                       title="Кількість сторінок",
+                       description="Кількість сторінок повинна бути більше 10",
+                       gt=10)
 
-# побудувати трасу, де є старт та фініш
-def track():
-    tr = create_turtle(-150, -150, "triangle", "green")
-    tr.pd()
-    tr.setheading(90)
-    tr.fd(300)
-    tr.color("red")
-    tr.width(20)
-    tr.pu()
-    tr.goto(300, -150)
-    tr.pd()
-    tr.setheading(90)
-    tr.fd(300)
+# Створення нової книги
+@app.post("/books/", response_model=Book)
+async def create_book(book: Book):
+    author = book.author
+    if author not in library:
+        library[author] = []
+    else:
+        for b in library[author]:
+            if b.title.lower() == book.title.lower():
+                raise HTTPException(
+                    status_code=409,
+                    detail=f"Книга '{book.title}' вже існує у автора {author}"
+                )
+    library[author].append(book)
+    return book
 
+# Отримання всіх книг автора
+@app.get("/books/")
+async def get_books(author: str = Query(..., title="Автор")):
+    if author not in library:
+        raise HTTPException(status_code=404, detail="Автор не знайдений")
+    return library[author]
 
-# створити черепашок
-t1 = create_turtle(-150, 70, "turtle", "purple")
-t2 = create_turtle(-150, -70, "turtle", "orange")
+# Оновлення книги автора
+@app.put("/books/")
+async def update_book(book: Book):
+    author = book.author
+    if author not in library:
+        raise HTTPException(status_code=404, detail="Автор не знайдений")
+    for b in library[author]:
+        if b.title == book.title:
+            b.pages = book.pages
+            return {"message": "Книга оновлена"}
+    raise HTTPException(status_code=404, detail="Книга не знайдена")
 
-track()
-
-# створити ігровий цикл, де черепашки будуть змагатись
-while t1.xcor() < 300 and t2.xcor() < 300:
-    t1.fd(randint(1, 7))
-    t2.fd(randint(1, 7))
-
-
-if t1.xcor() > t2.xcor():
-    t1.write("i am a winner!")
-else:
-    t2.write("i am a winner!")
+# Видалення книги автора
+@app.delete("/books/")
+async def delete_book(title: str, author: str):
+    if author not in library:
+        raise HTTPException(status_code=404, detail="Автор не знайдений")
+    for book in library[author]:
+        if book.title == title:
+            library[author].remove(book)
+            return {"message": "Книга видалена"}
+    raise HTTPException(status_code=404, detail="Книга не знайдена")
