@@ -1,14 +1,11 @@
-from turtle import *
-from random import randint
-
-hideturtle()
-
-
-def create_t(x, y, sh, col):
-    t = Turtle()
-    t.shape(sh)
-    t.speed(0)
-    t.color(col)
-    t.penup()
-    t.goto(x, y)
-    return t
+# 1.Функція - малюємо ігрове поле
+def draw_field():
+    t = create_t(-150, -100, "turtle", "gold")
+    t.hideturtle()
+    t.width(10)
+    t.pendown()
+    for _ in range(2):
+        t.fd(300)
+        t.lt(90)
+        t.fd(200)
+        t.lt(90)
