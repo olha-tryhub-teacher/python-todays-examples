@@ -1,6 +1,11 @@
-# 3. створити 4 об'єкта черепашки - список
-turtle_list = []
-colors = ["red", "blue", "purple", "orange"]
-for col in colors:
-    t = create_turtle(randint(-200, 200), -150, col)
-    turtle_list.append(t)
+# 4. Функція - створити напис-позначку, метод - оновлювати напис
+def create_label(x, y):
+    t = create_t(x, y, "turtle", "violet")
+    t.hideturtle()
+
+    def write_t(count):
+        t.clear()
+        t.write(f"In rect {count} turtle", font=("Arial", 16))
+
+    t.write_t = write_t
+    return t
