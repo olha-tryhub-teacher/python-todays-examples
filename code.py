@@ -1,23 +1,38 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
-from sqlalchemy.orm import relationship
-
-from database import Base
+from pydantic import BaseModel
+from typing import List, Optional
 
 
-class Author(Base):
-    __tablename__ = "authors"
+# ----- Book Schemas -----
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, index=True)
-
-    books = relationship("Book", back_populates="author")
+class BookBase(BaseModel):
+    name: str
 
 
-class Book(Base):
-    __tablename__ = "books"
+class BookCreate(BookBase):
+    author_id: int
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, index=True)
-    author_id = Column(Integer, ForeignKey("authors.id"))
 
-    author = relationship("Author", back_populates="books")
+class Book(BookBase):
+    id: int
+    author_id: int
+
+    class Config:
+        orm_mode = True   # дозволяє повертати дані з SQLAlchemy-моделей
+
+
+# ----- Author Schemas -----
+
+class AuthorBase(BaseModel):
+    name: str
+
+
+class AuthorCreate(AuthorBase):
+    pass
+
+
+class Author(AuthorBase):
+    id: int
+    books: List[Book] = []   # Автор може мати список книжок
+
+    class Config:
+        orm_mode = True
