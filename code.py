@@ -1,96 +1,126 @@
-from fastapi import FastAPI, HTTPException, Query, Depends #⬅️⬅️
-from sqlalchemy.orm import Session #⬅️⬅️
-from pydantic import BaseModel, Field
+from pygame import *
+import socket
+import json
+from threading import Thread
 
-import models, schemas, crud #⬅️⬅️
-from database import engine, Base, SessionLocal #⬅️⬅️
-
-# Створюємо таблиці у базі
-Base.metadata.create_all(bind=engine) #⬅️⬅️
-
-app = FastAPI()
-
-# Dependency для отримання сесії БД
-def get_db(): #⬅️⬅️
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-# Пустий словник для збереження даних
-# library = {} #⬅️⬅️
-
-# Модель для книги з використанням Annotated та валідації
-# class Book(BaseModel): #⬅️⬅️
-#     title: str = Field(...,
-#                        title="Назва книги",
-#                        description="Назва книги повинна бути вказана",
-#                        min_length=1)
-#     author: str = Field(...,
-#                         title="Автор",
-#                         description="Ім'я автора",
-#                         min_length=3,
-#                         max_length=50)
-#     pages: int = Field(...,
-#                        title="Кількість сторінок",
-#                        description="Кількість сторінок повинна бути більше 10",
-#                        gt=10)
-
-# Створення нової книги
-# ----- Автори ----- #⬅️⬅️ #⬅️⬅️ #⬅️⬅️
-
-@app.post("/authors/", response_model=schemas.Author)
-def create_author(author: schemas.AuthorCreate, db: Session = Depends(get_db)):
-    db_author = crud.get_author_by_name(db, name=author.name)
-    if db_author:
-        raise HTTPException(status_code=409, detail="Автор вже існує")
-    return crud.create_author(db=db, author=author)
+# ---ПУГАМЕ НАЛАШТУВАННЯ ---
+WIDTH, HEIGHT = 800, 600
+init()
+screen = display.set_mode((WIDTH, HEIGHT))
+clock = time.Clock()
+display.set_caption("Пінг-Понг")
 
 
-@app.get("/authors/", response_model=list[schemas.Author])
-def get_authors(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    return crud.get_authors(db, skip=skip, limit=limit)
+# ---СЕРВЕР ---
+def connect_to_server():
+    while True:
+        try:
+            client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            client.connect(('localhost', 8080))  # ---- Підключення до сервера
+            buffer = ""
+            game_state = {}
+            my_id = int(client.recv(24).decode())
+            return my_id, game_state, buffer, client
+        except:
+            pass
 
 
-@app.get("/authors/{author_id}", response_model=schemas.Author)
-def get_author(author_id: int, db: Session = Depends(get_db)):
-    db_author = crud.get_author(db, author_id=author_id)
-    if not db_author:
-        raise HTTPException(status_code=404, detail="Автор не знайдений")
-    return db_author
+def receive():
+    global buffer, game_state, game_over
+    while not game_over:
+        try:
+            data = client.recv(1024).decode()
+            buffer += data
+            while "\n" in buffer:
+                packet, buffer = buffer.split("\n", 1)
+                if packet.strip():
+                    game_state = json.loads(packet)
+        except:
+            game_state["winner"] = -1
+            break
 
 
-# ----- Книги -----
+# --- ШРИФТИ ---
+font_win = font.Font(None, 72)
+font_main = font.Font(None, 36)
+# --- ЗОБРАЖЕННЯ ----
+# game_bg = image.load("images/football-field.webp")
+# game_bg = transform.scale(game_bg, (WIDTH, HEIGHT))
 
-@app.post("/books/", response_model=schemas.Book)
-def create_book(book: schemas.BookCreate, db: Session = Depends(get_db)):
-    # перевірка на існування автора
-    db_author = crud.get_author(db, author_id=book.author_id)
-    if not db_author:
-        raise HTTPException(status_code=404, detail="Автор не знайдений")
+# --- ЗВУКИ ---
 
-    # перевірка на дубль книги
-    db_books = crud.get_books(db)
-    for b in db_books:
-        if b.name.lower() == book.name.lower() and b.author_id == book.author_id:
-            raise HTTPException(status_code=409, detail="Книга вже існує у цього автора")
+# --- ГРА ---
+game_over = False
+winner = None
+you_winner = None
+my_id, game_state, buffer, client = connect_to_server()
+Thread(target=receive, daemon=True).start()
+while True:
+    for e in event.get():
+        if e.type == QUIT:
+            exit()
 
-    return crud.create_book(db=db, book=book)
+    if "countdown" in game_state and game_state["countdown"] > 0:
+        screen.fill((0, 0, 0))  # це можна закоментувати
+        # todo: тут додати малювання фону для екрану, де рахує 3... 2... 1... до початку гри
+        countdown_text = font.Font(None, 72).render(str(game_state["countdown"]), True, (255, 255, 255))
+        screen.blit(countdown_text, (WIDTH // 2 - 20, HEIGHT // 2 - 30))
+        display.update()
+        continue  # Не малюємо гру до завершення відліку
 
+    if "winner" in game_state and game_state["winner"] is not None:
+        screen.fill((20, 20, 20))
 
-@app.get("/books/", response_model=list[schemas.Book])
-def get_books(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    return crud.get_books(db, skip=skip, limit=limit)
+        if you_winner is None:  # Встановлюємо тільки один раз
+            if game_state["winner"] == my_id:
+                you_winner = True
+            else:
+                you_winner = False
 
+        if you_winner:
+            text = "Ти переміг!"
+        else:
+            text = "Пощастить наступним разом!"
 
-@app.get("/books/{book_id}", response_model=schemas.Book)
-def get_book(book_id: int, db: Session = Depends(get_db)):
-    db_book = crud.get_book(db, book_id=book_id)
-    if not db_book:
-        raise HTTPException(status_code=404, detail="Книга не знайдена")
-    return db_book
+        win_text = font_win.render(text, True, (255, 215, 0))
+        text_rect = win_text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+        screen.blit(win_text, text_rect)
 
-# pip install "uvicorn[standard]"
-# uvicorn main:app --reload
-# main - назва вашого файлу
+        text = font_win.render('К - рестарт', True, (255, 215, 0))
+        text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 120))
+        # todo: тут малюємо фон для кінця гри (тіпа гейм овер)
+        screen.blit(text, text_rect)
+
+        display.update()
+        continue  # Блокує гру після перемоги
+
+    if game_state:
+        # screen.fill((30, 30, 30))
+        screen.blit(game_bg, (0, 0)) # todo: ось приклад малювання фону гри (у мене було футбольне поле)
+        draw.rect(screen, (0, 255, 0), (20, game_state['paddles']['0'], 20, 100))
+        draw.rect(screen, (255, 0, 255), (WIDTH - 40, game_state['paddles']['1'], 20, 100))
+        draw.circle(screen, (255, 255, 255), (game_state['ball']['x'], game_state['ball']['y']), 10)
+        score_text = font_main.render(f"{game_state['scores'][0]} : {game_state['scores'][1]}", True, (255, 255, 255))
+        screen.blit(score_text, (WIDTH // 2 - 25, 20))
+
+        if game_state['sound_event']:
+            if game_state['sound_event'] == 'wall_hit':
+                # звук відбиття м'ячика від стін
+                pass
+            if game_state['sound_event'] == 'platform_hit':
+                # звук відбиття м'ячика від платформи
+                pass
+
+    else:
+        # todo: тут можна додати малювання фону для очікування другого гравця
+        wating_text = font_main.render(f"Очікування гравців...", True, (255, 255, 255))
+        screen.blit(wating_text, (WIDTH // 2 - 25, 20))
+
+    display.update()
+    clock.tick(60)
+
+    keys = key.get_pressed()
+    if keys[K_w]:
+        client.send(b"UP")
+    elif keys[K_s]:
+        client.send(b"DOWN")
