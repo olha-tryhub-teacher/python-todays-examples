@@ -1,74 +1,81 @@
-# 2
-while True:
-    try:
-        players_amount = int(input('Введіть кількість гравців: '))
-        bonus_amount = int(input('Введіть кількість бонусів: '))
-        break
-    except:
-        print('Помилка! Кількість повинна бути цілим числом')
+from turtle import *
+from random import randint
 
-# ⬇️⬇️⬇️ Обчислення бонусу з обробкою ділення на 0
-try:
-    bonus = bonus_amount / players_amount
-    print(f"Кожен гравець отримає {bonus} бонусів")
-except:
-    print("Помилка поділу! Можливо, ніхто не прийшов на турнір?")
+hideturtle()
 
-# 3
-print('Як називається найвища гора світу?')
-print('1 - Ельбрус, 2 - Мауна-Лоа, 3 - Еверест, 4 - Деналі')
 
-# тут пиши код ⬇️⬇️⬇️
-while True:
-    answer = input()
-    try:
-        answer = int(answer)
-        break
-    except:
-        print("Помилка! Введіть номер правильної відповіді")
-# тут пиши код ⬆️⬆️⬆️
+def create_t(x, y, sh, col):
+    t = Turtle()
+    t.shape(sh)
+    t.speed(0)
+    t.color(col)
+    t.penup()
+    t.goto(x, y)
+    return t
 
-if answer == 3:
-    print('Абсолютно вірно!')
-else:
-    print('Ні. Еверест, 8848 метрів')
 
-# 4
-print('Як розшифровується ВООЗ?')
-print('''1-Всесвітня організація охорони здоров'я''')
-print('2-Всеукраїнська організація захисту')
-print('3-Всеукраїнська особлива здравниця')
-print('4-Володіння особливого значення')
+# 1.Функція - малюємо ігрове поле
+def draw_field():
+    t = create_t(-150, -100, "turtle", "gold")
+    t.hideturtle()
+    t.width(10)
+    t.pendown()
+    for _ in range(2):
+        t.fd(300)
+        t.lt(90)
+        t.fd(200)
+        t.lt(90)
 
-# Допиши програму
-while True:
-    answer = input()
-    try:
-        answer = int(answer)
-        break
-    except:
-        print("Помилка! Введіть номер правильної відповіді")
 
-if answer == 1:
-    print("Абсолютно вірно!")
-else:
-    print("Ні. ВООЗ - це Всесвітня організація охорони здоров'я")
+# 2. Функція - створити об'єкт черепашка(координати та колір). Метод - перетягувати
+def create_turtle(x, y, col):
+    t = create_t(x, y, "circle", col)
 
-# 5
-from random import *
+    def on_drag(x, y):
+        t.goto(x, y)
+        check_turtle()
 
-random_number = randint(1, 10)
+    t.ondrag(on_drag)
+    return t
 
-while True:
-    answer = input("Вгадай число від 1 до 10:")
-    try:
-        answer = int(answer)
-        if answer < 1 or answer > 10:
-            print("Число має бути від 1 до 10.")
-        elif answer != random_number:
-            print("Спробуй ще раз")
-        else:
-            print("Вітаю! Ви вгадали!")
-            break
-    except:
-        print("Помилка! Введіть число.")
+
+# 3. створити 4 об'єкта черепашки - список
+turtle_list = []
+colors = ["red", "blue", "purple", "orange"]
+for col in colors:
+    t = create_turtle(randint(-200, 200), -150, col)
+    turtle_list.append(t)
+
+
+# 4. Функція - створити напис-позначку, метод - оновлювати напис
+def create_label(x, y):
+    t = create_t(x, y, "turtle", "violet")
+    t.hideturtle()
+
+    def write_t(count):
+        t.clear()
+        t.write(f"In rect {count} turtle", font=("Arial", 16))
+
+    t.write_t = write_t
+    return t
+
+
+# 5. Створити напис-позначку
+label = create_label(-150, -125)
+
+
+# 6.Функція - перевірити кількість черпашок у прямокутнику
+def check_turtle():
+    count = 0
+    for t in turtle_list:
+        if abs(t.xcor()) < 150 and abs(t.ycor()) < 100:
+            count += 1
+
+    label.write_t(count)
+
+
+# 7. Намалювати ігрове поле, перевірити де черепашки піся спавну
+draw_field()
+check_turtle()
+
+done()
