@@ -1,28 +1,21 @@
-from socket import *
-
-client_socket = socket(AF_INET, SOCK_STREAM)
-client_socket.connect(('localhost', 12345))
-
-name = input("Для підключення на сервер введіть своє ім'я: ")
-client_socket.send(name.encode())
-print(client_socket.recv(1024).decode())
-command = input('Введіть команду (NAME, EXIT): ')
-client_socket.send(command.encode())
-print(client_socket.recv(1024).decode())
-
-client_socket.close()
+# Оголошення класу Animal (Тварина)
+class Animal:
+    # Метод ініціалізації — встановлює ім'я та початковий рівень енергії тварини
+    def __init__(self, name, energy):
+        self.name = name        # Ім'я тварини
+        self.energy = energy    # Поточний рівень енергії тварини
 
 
+    # Метод eat — тварина їсть їжу, додаючи енергію від їжі до своєї
+    def eat(self, food):
+        self.energy += food.energy     # Збільшуємо енергію тварини на енергію їжі
+        print(f"Animal {self.name} eat {food.name}. Energy: {self.energy}")
+        # Виводимо повідомлення про те, що тварина з'їла їжу і показуємо оновлений рівень енергії
 
 
-# ДЛЯ ВАНІ
-if command == 'NAME':
-   connection.send(f"Твоє ім'я: {client_name}".encode())
-elif command == 'EXIT':
-   connection.send(f"Бувай {client_name}".encode())
-   connection.close()
-else:
-   connection.send('Такої команди не існує'.encode())
-server_socket.close()
-
-
+# Оголошення класу Food (Їжа)
+class Food:
+    # Метод ініціалізації — встановлює назву їжі та її енергетичну цінність
+    def __init__(self, name, energy):
+        self.name = name        # Назва їжі
+        self.energy = energy    # Кількість енергії, яку дає їжа
