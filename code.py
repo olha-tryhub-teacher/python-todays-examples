@@ -1,36 +1,51 @@
-@app.get("/home", response_class=HTMLResponse)
-def ui_index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+# ваш код
+from turtle import *
+from random import randint
 
 
-@app.get("/home/authors", response_class=HTMLResponse)
-def ui_authors(request: Request, db: Session = Depends(get_db)):
-    authors = crud.get_authors(db)
-    return templates.TemplateResponse( #один рядок
-        "authors.html", {"request": request, "authors": authors})
+def create_turtle(x, y, sh, col):
+    t = Turtle()
+    t.pu()
+    t.goto(x, y)
+    t.width(10)
+    t.shape(sh)
+    t.color(col)
+    return t
 
 
+# побудувати трасу, де є старт та фініш
+def track():
+    tr = create_turtle(-150, -150, "triangle", "green")
+    tr.setheading(90)
+    tr.pendown()
+    tr.forward(300)
+    tr.color("red")
+    tr.width(20)
+    tr.penup()
+    tr.goto(300, -150)
+    tr.pendown()
+    tr.forward(300)
 
 
-
-@app.get("/home/books", response_class=HTMLResponse)
-def ui_books(request: Request, db: Session = Depends(get_db)):
-    books = crud.get_books(db)
-    return templates.TemplateResponse("books.html", {"request": request, "books": books})
+def win(t):
+    t.write("i am a winner!")
 
 
-@app.get("/home/authors/{author_id}",  response_class=HTMLResponse)
-def ui_single_author(author_id: int, request: Request, db: Session = Depends(get_db)):
-    db_author = crud.get_author(db, author_id=author_id)
-    if not db_author:
-        raise HTTPException(status_code=404, detail="Автор не знайдений")
-    # отримуємо книжки саме цього автора
-    books = db_author.books
-    return templates.TemplateResponse(
-        "author.html",
-        {
-            "request": request,
-            "author": db_author,
-            "books": books
-        }
-    )
+# створити черепашок
+t1 = create_turtle(-150, 70, "turtle", "purple")
+t2 = create_turtle(-150, -70, "turtle", "orange")
+
+track()
+
+# створити ігровий цикл, де черепашки будуть змагатись
+while t1.xcor() < 300 and t2.xcor() < 300:
+    t1.forward(randint(1, 7)) # 7
+    t2.forward(randint(1, 7)) # 1
+
+
+if t1.xcor() > t2.xcor(): #305, 301
+    win(t1)
+else:
+    win(t2)
+
+done()
