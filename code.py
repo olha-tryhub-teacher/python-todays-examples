@@ -1,35 +1,43 @@
-# client
-
 from socket import *
+import threading
 
-client_socket = socket(AF_INET, SOCK_STREAM)
-client_socket.connect(('localhost', 12345))
-
-name = input("Для підключення на сервер введіть своє ім'я: ")
-client_socket.send(name.encode())
-print(client_socket.recv(1024).decode())
-command = input('Введіть команду (NAME, EXIT): ')
-client_socket.send(command.encode())
-print(client_socket.recv(1024).decode())
-
-client_socket.close()
-
-
-# server
-from socket import *
 server_socket = socket(AF_INET, SOCK_STREAM)
-server_socket.bind(('localhost', 12345))
-server_socket.listen(1)
-connection, address = server_socket.accept()
-client_name = connection.recv(1024).decode()
-print(f"Користувач {client_name} під'єднався!")
-connection.send(f"Вітаю {client_name} на сервері".encode())
-command = connection.recv(1024).decode()
-if command == 'NAME':
-   connection.send(f"Твоє ім'я: {client_name}".encode())
-elif command == 'EXIT':
-   connection.send(f"Бувай {client_name}".encode())
-   connection.close()
-else:
-   connection.send('Такої команди не існує'.encode())
-server_socket.close()
+server_socket.bind(('localhost', 8080))
+server_socket.listen(13)
+print("Сервер запущений...")
+
+clients = []
+
+
+def broadcast(message):
+    for client in clients:
+        try:
+            client.send(f"{message}\n".encode())
+        except:
+            pass
+
+
+def handle_client(client_socket):
+    name = client_socket.recv(1024).decode().strip()
+    broadcast(f"{name} приєднався до чату!")
+
+    while True:
+        try:
+            message = client_socket.recv(1024).decode().strip()
+            broadcast(f"{name}: {message}")
+        except:
+            clients.remove(client_socket)
+            broadcast(f"{name} вийшов із чату!")
+            client_socket.close()
+            break
+
+
+while True:
+    client_socket, addr = server_socket.accept()
+    clients.append(client_socket)
+    threading.Thread(target=handle_client, args=(client_socket,), daemon=True).start()
+
+
+
+
+# ngrok.exe tcp номер порта
