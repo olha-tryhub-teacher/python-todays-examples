@@ -1,43 +1,20 @@
-from socket import *
-import threading
-
-server_socket = socket(AF_INET, SOCK_STREAM)
-server_socket.bind(('localhost', 8080))
-server_socket.listen(13)
-print("Сервер запущений...")
-
-clients = []
+class Animal:
+    # Метод ініціалізації — встановлює ім'я та початковий рівень енергії тварини
+    def __init__(self, name, energy):
+        self.name = name        # Ім'я тварини
+        self.energy = energy    # Поточний рівень енергії тварини
 
 
-def broadcast(message):
-    for client in clients:
-        try:
-            client.send(f"{message}\n".encode())
-        except:
-            pass
+    # Метод eat — тварина їсть їжу, додаючи енергію від їжі до своєї
+    def eat(self, food):
+        self.energy += food.energy     # Збільшуємо енергію тварини на енергію їжі
+        print(f"Animal {self.name} eat {food.name}. Energy: {self.energy}")
+        # Виводимо повідомлення про те, що тварина з'їла їжу і показуємо оновлений рівень енергії
 
 
-def handle_client(client_socket):
-    name = client_socket.recv(1024).decode().strip()
-    broadcast(f"{name} приєднався до чату!")
-
-    while True:
-        try:
-            message = client_socket.recv(1024).decode().strip()
-            broadcast(f"{name}: {message}")
-        except:
-            clients.remove(client_socket)
-            broadcast(f"{name} вийшов із чату!")
-            client_socket.close()
-            break
-
-
-while True:
-    client_socket, addr = server_socket.accept()
-    clients.append(client_socket)
-    threading.Thread(target=handle_client, args=(client_socket,), daemon=True).start()
-
-
-
-
-# ngrok.exe tcp номер порта
+# Оголошення класу Food (Їжа)
+class Food:
+    # Метод ініціалізації — встановлює назву їжі та її енергетичну цінність
+    def __init__(self, name, energy):
+        self.name = name        # Назва їжі
+        self.energy = energy    # Кількість енергії, яку дає їжа
