@@ -1,6 +1,3 @@
-import turtle
-
-
 # Оголошення класу Painter (Малювальник)
 class Painter:
     # Конструктор — створює об'єкт turtle, який ховається в приватному атрибуті __t
@@ -47,8 +44,3 @@ class Painter:
         self.__t.begin_fill()           # Почати заливку
         self.__t.circle(radius)         # Намалювати круг заданого радіуса
         self.__t.end_fill()             # Завершити заливку
-
-p1 = Painter()
-p1.draw_circle(100, 100, 30, "yellow")
-p1.draw_circle(100,50, 30, 'red')
-turtle.done()
