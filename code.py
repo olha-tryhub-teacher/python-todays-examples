@@ -1,46 +1,41 @@
-# Оголошення класу Painter (Малювальник)
-class Painter:
-    # Конструктор — створює об'єкт turtle, який ховається в приватному атрибуті __t
-    def __init__(self):
-        self.__t = turtle.Turtle()  # Створюється черепашка для малювання
+from socket import *
+import threading
+import time
 
 
-    # Метод для переміщення черепашки в координати (x, y)
-    def goto(self, x, y):
-        self.__t.goto(x, y)
+def connect():
+    while True:
+        try:
+            sock = socket(AF_INET, SOCK_STREAM)
+            sock.connect(("127.0.0.1", 8080))
+            name = input("Введіть ім'я: ")
+            sock.send(name.encode())
+            return sock
+        except:
+            print("Не вдалося з'єднатися, пробуємо ще раз...")
+            time.sleep(1)
 
 
-    # Метод для зміни кольору пера та заливки
-    def set_color(self, color):
-        self.__t.color(color)
+client_socket = connect()
 
 
-    # Метод для встановлення напряму (в градусах)
-    def heading(self, h):
-        self.__t.setheading(h)
+def send_message():
+    while True:
+        msg = input()
+        if msg.lower() == "exit" or msg.lower() == "вихід":
+            client_socket.close()
+            break
+        client_socket.send(msg.encode())
 
+threading.Thread(target=send_message, daemon=True).start()
 
-    # Метод для руху вперед на певну довжину
-    def forward(self, length):
-        self.__t.fd(length)
-
-
-    # Метод для малювання прямокутника із заданою шириною, висотою та кольором
-    def draw_rect(self, width, height, color):
-        self.set_color(color)           # Встановити колір
-        self.__t.begin_fill()           # Почати заливку
-        for _ in range(2):              # Двічі пройти по двом сторонам прямокутника
-            self.forward(width)         # Малюємо ширину
-            self.__t.right(90)             # Повертаємось на 90 градусів вправо
-            self.forward(height)        # Малюємо висоту
-            self.__t.right(90)             # Повертаємось знову
-        self.__t.end_fill()             # Завершуємо заливку
-
-
-    # Метод для малювання круга з центром у (x, y), певним радіусом і кольором
-    def draw_circle(self, x, y, radius, color):
-        self.set_color(color)           # Встановити колір
-        self.goto(x, y)                 # Переміститись у центр круга
-        self.__t.begin_fill()           # Почати заливку
-        self.__t.circle(radius)         # Намалювати круг заданого радіуса
-        self.__t.end_fill()             # Завершити заливку
+while True:
+    try:
+        message = client_socket.recv(1024).decode().strip()
+        if message:
+            print(message)
+        else:
+            break
+    except:
+        print("Від'єднано від сервера")
+        break
