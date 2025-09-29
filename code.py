@@ -1,3 +1,8 @@
+-- Таблиця класів
+CREATE TABLE class (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    start_year INT
+);
 
 -- Зв'язок клас ↔️ учні (багато до багатьох)
 CREATE TABLE class_student (
