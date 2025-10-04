@@ -1,54 +1,73 @@
-import pandas as pd
-from sklearn.model_selection import train_test_split  # Імпортуємо функцію для розділення даних на тренувальну і тестову вибірки
-from sklearn.preprocessing import StandardScaler  # Імпортуємо StandardScaler для нормалізації даних
-from sklearn.neighbors import KNeighborsClassifier  # Імпортуємо K-Nearest Neighbors Classifier
-from sklearn.metrics import confusion_matrix, accuracy_score  # Імпортуємо метрики оцінки моделі
+from pygame import *
+from random import randint
 
-pd.set_option('display.max_columns', 20)
-pd.set_option('display.width', 1000)
+init()
+WIDTH = 1200
+HEIGHT = 800
+window = display.set_mode((WIDTH, HEIGHT))
+clock = time.Clock()
 
-df = pd.read_csv("train.csv")
-print(df.head())
+player_rect = Rect(150, HEIGHT // 2 - 100, 100, 100)
 
-print(df.info())
 
-df.drop(["id", "bdate", "has_mobile", "education_form", "education_status", "langs", "life_main", "people_main", "last_seen", "occupation_type", "followers_count", "has_photo", "career_start", "career_end"], axis=1, inplace=True)
-print(df.info())
+def generate_pipes(count,pipe_width=140, gap=280, # один рядок
+                   min_height=50, max_height=440, # один рядок
+                   distance=650):
+    pipes = []
+    start_x = WIDTH
+    for i in range(count):
+        height = randint(min_height, max_height)
+        top_pipe = Rect(start_x, 0, pipe_width, height)
+        bottom_pipe = Rect(start_x, height + gap,  # один рядок
+                           pipe_width, HEIGHT - (height + gap))
+        pipes.extend([top_pipe, bottom_pipe])
+        start_x += distance
+    return pipes
 
-# Навчання моделі
-# Вибір цільової змінної та ознак
-X = df.drop("result", axis=1)
-y = df["result"]
 
-# Розділення даних
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=99999)
+pies = generate_pipes(150)
+main_font = font.Font(None, 100)
+score = 0
+lose = False
+y_vel = 2
+while True:
+    for e in event.get():
+        if e.type == QUIT:
+            quit()
 
-# Навчання моделі
-sc = StandardScaler()
-X_train = sc.fit_transform(X_train)  # Нормалізуємо тренувальні дані
-X_test = sc.transform(X_test)  # Нормалізуємо тестові дані на основі параметрів тренувальної вибірки
+    window.fill('sky blue')
+    draw.rect(window, 'red', player_rect)
+    for pie in pies:
+        if not lose:
+            pie.x -= 8
+        draw.rect(window, 'green', pie)
+        if pie.x <= -100:
+            pies.remove(pie)
+            score += 0.5
+        if player_rect.colliderect(pie):
+            lose = True
+    if len(pies) < 8:
+        pies += generate_pipes(150)
 
-classifier = KNeighborsClassifier(n_neighbors=5)  # Створюємо модель K-Nearest Neighbors з 5 сусідами
-classifier.fit(X_train, y_train)  # Навчаємо модель на тренувальних даних
+    score_text = main_font.render(f'{int(score)}', 1, 'black')
+    center_text = WIDTH // 2 - score_text.get_rect().w
+    window.blit(score_text, (center_text, 40))
 
-y_pred = classifier.predict(X_test)  # Виконуємо прогнозування на тестових даних
-print("Відсоток правильно передбачених результатів:",accuracy_score(y_test, y_pred) * 100)  # Виводимо точність моделі
-print("Confusion matrix:")
-cm = confusion_matrix(y_test, y_pred)
-print(cm)  # Виводимо матрицю плутанини для оцінки моделі
+    keys = key.get_pressed()
+    if keys[K_w] and not lose:
+        player_rect.y -= 15
+    else:
+        player_rect.y += 6
+    if keys[K_r] and lose:
+        lose = False
+        score = 0
+        pies = generate_pipes(150)
+        player_rect.y = HEIGHT // 2 - 100
+        y_vel = 2
+    if player_rect.y >= HEIGHT - player_rect.h: lose = True
+    if lose:
+        player_rect.y += y_vel
+        y_vel *= 1.1
 
-print(cm[0][0], "- правильно класифіковані як ті, хто не придбав курс")
-print(cm[0][1], "- помилково класифіковані як ті, хто придбав курс, хоча насправді вони його не придбали")
-print(cm[1][0], "- помилково класифіковані як ті, хто не придбав курс, хоча насправді вони його придбали")
-print(cm[1][1], "- правильно класифіковані як ті, хто придбав курс")
-
-df = pd.read_csv("test.csv")
-id_test = df["id"]
-df.drop(["id", "bdate", "has_mobile", "education_form", "education_status", "langs", "life_main", "people_main", "last_seen", "occupation_type", "followers_count", "has_photo", "career_start", "career_end"], axis=1, inplace=True)
-X_test = sc.transform(df)
-y_pred = classifier.predict(X_test)
-
-print(y_pred)
-df_sub = pd.DataFrame({"id":id_test, "result":y_pred})
-df_sub.to_csv("result.csv", index=False)
-
+    display.update()
+    clock.tick(60)
