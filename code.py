@@ -1,110 +1,54 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split  # Імпортуємо функцію для розділення даних на тренувальну і тестову вибірки
+from sklearn.preprocessing import StandardScaler  # Імпортуємо StandardScaler для нормалізації даних
+from sklearn.neighbors import KNeighborsClassifier  # Імпортуємо K-Nearest Neighbors Classifier
+from sklearn.metrics import confusion_matrix, accuracy_score  # Імпортуємо метрики оцінки моделі
 
-# ваш код
-# Координати кімнат, кольори, назви
-data_room1 = (-100, 50, 100, 50, "green", "Кімната 1")
-data_room2 = (-100, 100, 100, 50, "green", "Кімната 2")
-data_living = (-100, -50, 100, 100, "white", "Вітальня")
-data_corridor = (0, -50, 50, 200, "pink", "Коридор")
-data_toilet = (50, -50, 80, 40, "yellow", "Туалет")
-data_bath = (50, -10, 80, 80, "yellow", "Ванна")
-data_kitchen = (50, 70, 80, 80, "violet", "Кухня")
+pd.set_option('display.max_columns', 20)
+pd.set_option('display.width', 1000)
 
-# Загальний план будинку (список усіх кімнат)
-plan_house = [
-    data_room1,
-    data_room2,
-    data_living,
-    data_corridor,
-    data_toilet,
-    data_bath,
-    data_kitchen
-]
+df = pd.read_csv("train.csv")
+print(df.head())
 
-from turtle import *
+print(df.info())
 
+df.drop(["id", "bdate", "has_mobile", "education_form", "education_status", "langs", "life_main", "people_main", "last_seen", "occupation_type", "followers_count", "has_photo", "career_start", "career_end"], axis=1, inplace=True)
+print(df.info())
 
-class Room:
-    def __init__(self, x, y, w, h, bg_color, name):
-        """Ініціалізація кімнати"""
-        self.x = x
-        self.y = y
-        self.w = w
-        self.h = h
-        self.bg_color = bg_color
-        self.name = name
+# Навчання моделі
+# Вибір цільової змінної та ознак
+X = df.drop("result", axis=1)
+y = df["result"]
 
-        # Окремий Turtle для кожної кімнати
-        self.t = Turtle()
-        self.t.speed(0)
-        self.t.hideturtle()
-        self.t.width(10)
-        self.t.color("purple", self.bg_color)  # Колір рамки і заповнення
+# Розділення даних
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=99999)
 
-    def go_to(self, x, y):
-        """Переміщення без малювання"""
-        self.t.penup()
-        self.t.goto(x, y)
-        self.t.pendown()
+# Навчання моделі
+sc = StandardScaler()
+X_train = sc.fit_transform(X_train)  # Нормалізуємо тренувальні дані
+X_test = sc.transform(X_test)  # Нормалізуємо тестові дані на основі параметрів тренувальної вибірки
 
-    def draw(self):
-        """Малює кімнату з підписом"""
-        self.go_to(self.x, self.y)
+classifier = KNeighborsClassifier(n_neighbors=5)  # Створюємо модель K-Nearest Neighbors з 5 сусідами
+classifier.fit(X_train, y_train)  # Навчаємо модель на тренувальних даних
 
-        # Малювання прямокутника
-        self.t.begin_fill()
-        for i in range(2):
-            self.t.forward(self.w)
-            self.t.left(90)
-            self.t.forward(self.h)
-            self.t.left(90)
-        self.t.end_fill()
+y_pred = classifier.predict(X_test)  # Виконуємо прогнозування на тестових даних
+print("Відсоток правильно передбачених результатів:",accuracy_score(y_test, y_pred) * 100)  # Виводимо точність моделі
+print("Confusion matrix:")
+cm = confusion_matrix(y_test, y_pred)
+print(cm)  # Виводимо матрицю плутанини для оцінки моделі
 
-        # Запис назви кімнати
-        self.t.color("black")
-        if self.w < self.h:  # Якщо кімната вертикальна — пишемо по вертикалі
-            y_char = self.y + self.h - 45
-            for char in self.name:
-                self.go_to(self.x + 15, y_char)
-                self.t.write(char, font=("Arial", 14))
-                y_char -= 20
-        else:  # Інакше пишемо по горизонталі
-            self.go_to(self.x + 5, self.y + self.h // 3)
-            self.t.write(self.name, font=("Arial", 14))
+print(cm[0][0], "- правильно класифіковані як ті, хто не придбав курс")
+print(cm[0][1], "- помилково класифіковані як ті, хто придбав курс, хоча насправді вони його не придбали")
+print(cm[1][0], "- помилково класифіковані як ті, хто не придбав курс, хоча насправді вони його придбали")
+print(cm[1][1], "- правильно класифіковані як ті, хто придбав курс")
 
+df = pd.read_csv("test.csv")
+id_test = df["id"]
+df.drop(["id", "bdate", "has_mobile", "education_form", "education_status", "langs", "life_main", "people_main", "last_seen", "occupation_type", "followers_count", "has_photo", "career_start", "career_end"], axis=1, inplace=True)
+X_test = sc.transform(df)
+y_pred = classifier.predict(X_test)
 
-class House:
-    def __init__(self, rooms_data_list):
-        """Створює всі кімнати за планом"""
-        self.rooms = []
-        for room in rooms_data_list:
-            r = Room(room[0], room[1], room[2], room[3], room[4], room[5])
-            self.rooms.append(r)
+print(y_pred)
+df_sub = pd.DataFrame({"id":id_test, "result":y_pred})
+df_sub.to_csv("result.csv", index=False)
 
-        # Окремий Turtle для контуру будинку
-        self.h = Turtle()
-        self.h.speed(0)
-
-    def skyline(self):
-        """Малює зовнішній контур будинку"""
-        self.h.width(15)
-        self.h.color("purple")
-        self.h.hideturtle()
-        self.h.penup()
-        self.h.goto(-100, -50)
-        self.h.pendown()
-        for i in range(2):
-            self.h.forward(150 + 80)
-            self.h.left(90)
-            self.h.forward(200)
-            self.h.left(90)
-
-    def draw(self):
-        """Малює всі кімнати та контур"""
-        for room in self.rooms:
-            room.draw()
-        self.skyline()
-
-
-# Створюємо будинок і малюємо його
-house = House(plan_house)
-house.draw()
