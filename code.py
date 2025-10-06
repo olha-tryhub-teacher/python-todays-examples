@@ -1,73 +1,175 @@
-from pygame import *
-from random import randint
+CREATE DATABASE school;
+USE school;
+CREATE TABLE student (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    birth_date DATE
+);
 
-init()
-WIDTH = 1200
-HEIGHT = 800
-window = display.set_mode((WIDTH, HEIGHT))
-clock = time.Clock()
+-- Таблиця вчителів
+CREATE TABLE teacher (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    birth_date DATE,
+    salary DECIMAL(10,2)
+);
 
-player_rect = Rect(150, HEIGHT // 2 - 100, 100, 100)
+-- Таблиця класів
+CREATE TABLE class (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    start_year INT
+);
 
+-- Зв'язок клас ↔ учні (багато до багатьох)
+CREATE TABLE class_student (
+    class_id INT,
+    student_id INT,
+    PRIMARY KEY (class_id, student_id),
+    FOREIGN KEY (class_id) REFERENCES class(id),
+    FOREIGN KEY (student_id) REFERENCES student(id)
+);
 
-def generate_pipes(count,pipe_width=140, gap=280, # один рядок
-                   min_height=50, max_height=440, # один рядок
-                   distance=650):
-    pipes = []
-    start_x = WIDTH
-    for i in range(count):
-        height = randint(min_height, max_height)
-        top_pipe = Rect(start_x, 0, pipe_width, height)
-        bottom_pipe = Rect(start_x, height + gap,  # один рядок
-                           pipe_width, HEIGHT - (height + gap))
-        pipes.extend([top_pipe, bottom_pipe])
-        start_x += distance
-    return pipes
+-- Таблиця предметів
+CREATE TABLE subject (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100)
+);
 
+-- Таблиця уроків (розклад)
+CREATE TABLE lesson (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    lesson_number INT,           -- 1–8
+    week_day INT,
+    subject_id INT,
+    class_id INT,
+    teacher_id INT,
+    FOREIGN KEY (subject_id) REFERENCES subject(id),
+    FOREIGN KEY (class_id) REFERENCES class(id),
+    FOREIGN KEY (teacher_id) REFERENCES teacher(id)
+);
 
-pies = generate_pipes(150)
-main_font = font.Font(None, 100)
-score = 0
-lose = False
-y_vel = 2
-while True:
-    for e in event.get():
-        if e.type == QUIT:
-            quit()
+INSERT INTO class (start_year) VALUES
+(2022),
+(2023),
+(2024);
 
-    window.fill('sky blue')
-    draw.rect(window, 'red', player_rect)
-    for pie in pies:
-        if not lose:
-            pie.x -= 8
-        draw.rect(window, 'green', pie)
-        if pie.x <= -100:
-            pies.remove(pie)
-            score += 0.5
-        if player_rect.colliderect(pie):
-            lose = True
-    if len(pies) < 8:
-        pies += generate_pipes(150)
+-- === Учні ===
+-- 3 класи × 20 учнів = 60
+INSERT INTO student (first_name, last_name, birth_date) VALUES
+-- Клас 1
+('Іван', 'Петренко', '2010-03-12'),
+('Олена', 'Шевченко', '2010-07-25'),
+('Марія', 'Коваль', '2010-01-18'),
+('Сергій', 'Мельник', '2010-02-03'),
+('Андрій', 'Ткаченко', '2010-05-14'),
+('Юлія', 'Кравець', '2010-04-10'),
+('Владислав', 'Сидоренко', '2010-06-09'),
+('Олександр', 'Бондар', '2010-08-21'),
+('Катерина', 'Захаренко', '2010-09-02'),
+('Дарина', 'Лисенко', '2010-10-19'),
+('Михайло', 'Романюк', '2010-11-28'),
+('Ірина', 'Мороз', '2010-12-06'),
+('Богдан', 'Савченко', '2010-02-16'),
+('Анна', 'Кучер', '2010-04-27'),
+('Дмитро', 'Коваленко', '2010-05-30'),
+('Наталія', 'Рибак', '2010-06-15'),
+('Максим', 'Литвин', '2010-07-04'),
+('Ілля', 'Гончар', '2010-09-17'),
+('Вероніка', 'Білик', '2010-11-05'),
+('Олег', 'Поліщук', '2010-12-29'),
 
-    score_text = main_font.render(f'{int(score)}', 1, 'black')
-    center_text = WIDTH // 2 - score_text.get_rect().w
-    window.blit(score_text, (center_text, 40))
+-- Клас 2
+('Петро', 'Данилюк', '2011-03-14'),
+('Оксана', 'Кравчук', '2011-05-09'),
+('Тарас', 'Гнатюк', '2011-02-20'),
+('Іванна', 'Мазур', '2011-01-07'),
+('Олексій', 'Шевчук', '2011-06-18'),
+('Дарія', 'Бойко', '2011-07-11'),
+('Роман', 'Семенюк', '2011-08-30'),
+('Анастасія', 'Гаврилюк', '2011-09-12'),
+('Софія', 'Кушнір', '2011-10-24'),
+('Марта', 'Василенко', '2011-11-16'),
+('Богдан', 'Терещенко', '2011-12-02'),
+('Євген', 'Мельничук', '2011-01-25'),
+('Поліна', 'Білецька', '2011-03-30'),
+('Олег', 'Кириченко', '2011-04-15'),
+('Світлана', 'Зеленська', '2011-05-29'),
+('Ігор', 'Онуфрієнко', '2011-06-10'),
+('Руслан', 'Павленко', '2011-08-03'),
+('Тетяна', 'Дорошенко', '2011-09-27'),
+('Арсен', 'Гриценко', '2011-10-07'),
+('Іван', 'Савчук', '2011-11-20'),
 
-    keys = key.get_pressed()
-    if keys[K_w] and not lose:
-        player_rect.y -= 15
-    else:
-        player_rect.y += 6
-    if keys[K_r] and lose:
-        lose = False
-        score = 0
-        pies = generate_pipes(150)
-        player_rect.y = HEIGHT // 2 - 100
-        y_vel = 2
-    if player_rect.y >= HEIGHT - player_rect.h: lose = True
-    if lose:
-        player_rect.y += y_vel
-        y_vel *= 1.1
+-- Клас 3
+('Михайло', 'Гуменюк', '2012-01-12'),
+('Ірина', 'Бабій', '2012-02-25'),
+('Василь', 'Семенов', '2012-03-18'),
+('Марія', 'Кузьменко', '2012-04-09'),
+('Катерина', 'Гнатишин', '2012-05-05'),
+('Олександр', 'Морозюк', '2012-06-21'),
+('Юлія', 'Даниленко', '2012-07-13'),
+('Софія', 'Клименко', '2012-08-29'),
+('Богдан', 'Черненко', '2012-09-17'),
+('Олег', 'Бойчук', '2012-10-23'),
+('Наталя', 'Тимошенко', '2012-11-11'),
+('Ілля', 'Петрук', '2012-12-01'),
+('Анна', 'Мазепа', '2012-02-07'),
+('Андрій', 'Кулинич', '2012-03-22'),
+('Сергій', 'Кондратюк', '2012-04-30'),
+('Іванна', 'Борисенко', '2012-06-12'),
+('Владислав', 'Швець', '2012-07-26'),
+('Оксана', 'Гринюк', '2012-08-04'),
+('Артем', 'Гаврилов', '2012-09-15'),
+('Тетяна', 'Григорук', '2012-11-28');
 
-    display.update()
-    clock.tick(60)
+-- === Прив’язка учнів до класів ===
+INSERT INTO class_student (class_id, student_id)
+SELECT 1, id FROM student WHERE id BETWEEN 1 AND 20
+UNION ALL
+SELECT 2, id FROM student WHERE id BETWEEN 21 AND 40
+UNION ALL
+SELECT 3, id FROM student WHERE id BETWEEN 41 AND 60;
+
+-- === Учителі ===
+INSERT INTO teacher (first_name, last_name, birth_date, salary) VALUES
+('Олена', 'Гордієнко', '1985-04-12', 18000),
+('Сергій', 'Демченко', '1979-11-03', 20000),
+('Ірина', 'Коваленко', '1988-02-19', 18500),
+('Петро', 'Савчук', '1982-09-07', 19500),
+('Анна', 'Романюк', '1990-06-23', 17500),
+('Юрій', 'Шевченко', '1986-08-15', 19000);
+
+-- === Предмети ===
+INSERT INTO subject (name) VALUES
+('Математика'),
+('Українська мова'),
+('Історія'),
+('Англійська мова'),
+('Інформатика');
+
+-- === Розклад (по 5 днів × 5 уроків × 3 класи = 75 уроків) ===
+-- lesson_number = 1..5
+-- subject_id і teacher_id чергуються
+INSERT INTO lesson (lesson_number, week_day, subject_id, class_id, teacher_id) VALUES
+-- Клас 1
+(1,1,1,1,1),(2,1,2,1,2),(3,1,3,1,3),(4,1,4,1,4),(5,1,5,1,5),
+(1,2,2,1,2),(2,2,3,1,3),(3,2,4,1,4),(4,2,5,1,5),(5,2,1,1,1),
+(1,3,3,1,3),(2,3,4,1,4),(3,3,5,1,5),(4,3,1,1,1),(5,3,2,1,2),
+(1,4,4,1,4),(2,4,5,1,5),(3,4,1,1,1),(4,4,2,1,2),(5,4,3,1,3),
+(1,5,5,1,5),(2,5,1,1,1),(3,5,2,1,2),(4,5,3,1,3),(5,5,4,1,4),
+
+-- Клас 2
+(1,1,1,2,1),(2,1,2,2,2),(3,1,3,2,3),(4,1,4,2,4),(5,1,5,2,5),
+(1,2,2,2,2),(2,2,3,2,3),(3,2,4,2,4),(4,2,5,2,5),(5,2,1,2,1),
+(1,3,3,2,3),(2,3,4,2,4),(3,3,5,2,5),(4,3,1,2,1),(5,3,2,2,2),
+(1,4,4,2,4),(2,4,5,2,5),(3,4,1,2,1),(4,4,2,2,2),(5,4,3,2,3),
+(1,5,5,2,5),(2,5,1,2,1),(3,5,2,2,2),(4,5,3,2,3),(5,5,4,2,4),
+
+-- Клас 3
+(1,1,1,3,1),(2,1,2,3,2),(3,1,3,3,3),(4,1,4,3,4),(5,1,5,3,5),
+(1,2,2,3,2),(2,2,3,3,3),(3,2,4,3,4),(4,2,5,3,5),(5,2,1,3,1),
+(1,3,3,3,3),(2,3,4,3,4),(3,3,5,3,5),(4,3,1,3,1),(5,3,2,3,2),
+(1,4,4,3,4),(2,4,5,3,5),(3,4,1,3,1),(4,4,2,3,2),(5,4,3,3,3),
+(1,5,5,3,5),(2,5,1,3,1),(3,5,2,3,2),(4,5,3,3,3),(5,5,4,3,4);
