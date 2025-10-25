@@ -1,73 +1,40 @@
-from pygame import *
-from settings import *
-from sounds import load_sounds
-from keys import draw_keys, create_key_rects
-from ui.slider import Slider  # ⬅️
+# підключення pygame
+import pygame  # ⬅️
 
-init()
-screen = display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-display.set_caption("Piano Game")
+# кольори
+YELLOW = (200, 200, 0)
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+BLUE = (0, 0, 255)
+GREEN = (0, 255, 0)
+RED = (255, 0, 0)
 
-sounds = load_sounds(KEYS)
-key_rects = create_key_rects(len(KEYS))
-keys_list = list(KEYS.keys())
-pressed_keys = set()
+# налаштування Pygame
+pygame.init()
+screen = pygame.display.set_mode((500, 500))
+area1 = pygame.Surface((100,200))# ⬅️
+area1.fill(GREEN)# ⬅️
 
-# Шрифт для слайдера ⬅️
-font = font.SysFont(None, 25)
 
-# Створюємо слайдер гучності ⬅️
-volume_slider = Slider(50, 50, 200, min_value=0, max_value=100, font=font)
-
+clock = pygame.time.Clock()
 running = True
+
+# створення прямокутної поверхні
+
+
 while running:
-    screen.fill(WHITE)
-
-    # клавіші
-    draw_keys(screen, key_rects, pressed_keys)
-
-    # Малюємо слайдер і отримуємо значення гучності ⬅️
-    volume_value = volume_slider.draw(screen)
-    volume = volume_value / 100  # переводимо в діапазон 0.0 - 1.0
-
-    # Встановлюємо гучність для всіх звуків ⬅️
-    for sound in sounds.values():
-        sound.set_volume(volume)
-
-    display.flip()
-
-    for e in event.get():
-        if e.type == QUIT:
+    # обробка подій
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
             running = False
 
-        # Слайдер ⬅️
-        volume_slider.handle_event(e)
+    # заливка екрана кольором, відображення прямокутної поверхні
+    screen.fill(BLUE)# ⬅️
+    screen.blit(area1, (120, 50))# ⬅️
 
-        # клавіатура
-        if e.type == KEYDOWN:
-            k = key.name(e.key)
-            if k in sounds:
-                sounds[k].play()
-                idx = keys_list.index(k)
-                pressed_keys.add(idx)
+    # оновлення дисплея та обмеження частоти
+    pygame.display.flip()   # ⬅️
+    clock.tick()   # ⬅️
 
-        if e.type == KEYUP:
-            k = key.name(e.key)
-            if k in sounds:
-                idx = keys_list.index(k)
-                if idx in pressed_keys:
-                    pressed_keys.remove(idx)
 
-        # миша по клавішах
-        if e.type == MOUSEBUTTONDOWN:
-            pos = e.pos
-            for i, rect in enumerate(key_rects):
-                if rect.collidepoint(pos):
-                    sounds[keys_list[i]].play()
-                    pressed_keys.add(i)
-
-        if e.type == MOUSEBUTTONUP:
-            pos = e.pos
-            for i, rect in enumerate(key_rects):
-                if i in pressed_keys and rect.collidepoint(pos):
-                    pressed_keys.remove(i)
+pygame.quit()
