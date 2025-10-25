@@ -1,12 +1,17 @@
-import pygame
-from settings import WHITE, GREY, BLACK
+from pygame import Rect
+from effects import draw_key_effect
 
-def draw_key_effect(screen, rect, is_pressed=False):
-    """Малює клавішу з ефектом"""
-    base_color = (220, 220, 220) if not is_pressed else (170, 220, 255)  # блакитний відтінок при натисканні
-    border_color = BLACK
 
-    # фон клавіші
-    pygame.draw.rect(screen, base_color, rect, border_radius=8)
-    # рамка
-    pygame.draw.rect(screen, border_color, rect, 2, border_radius=8)
+def draw_keys(screen, key_rects, pressed_keys):
+    """Малює клавіші, враховуючи які зараз натиснуті"""
+    for i, rect in enumerate(key_rects):
+        is_pressed = i in pressed_keys
+        draw_key_effect(screen, rect, is_pressed)
+
+
+def create_key_rects(num_keys, start_x=50, start_y=100, key_width=100, key_height=250):
+    rects = []
+    for i in range(num_keys):
+        x = start_x + i * key_width
+        rects.append(Rect(x, start_y, key_width, key_height))
+    return rects
