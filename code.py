@@ -1,40 +1,16 @@
-from customtkinter import *
-from PIL import Image
+WINDOW_WIDTH = 800
+WINDOW_HEIGHT = 400
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+GREY = (200, 200, 200)
 
-set_default_color_theme("theme.json")
-
-
-class AuthWindow(CTk):
-   def __init__(self):
-       super().__init__()
-       self.geometry("700x400")
-       self.title("Вхід")
-       self.resizable(True, False)
-
-       # --- ліва частина --
-       self.left_frame  = CTkFrame(self)
-       self.left_frame.pack(side="left", fill="both")
-
-       img_ctk = CTkImage(light_image=Image.open("img/bg.png"), size=(450, 400))
-       self.img_label = CTkLabel(self.left_frame, text="Welcome", image=img_ctk, font=("Helvetica", 50, "bold"))
-       self.img_label.pack()
-
-       # -- ПРАВА ЧАСТИНА----
-       self.right_frame = CTkFrame(self)
-       self.right_frame.pack_propagate(False)
-       self.right_frame.pack(side="right", fill="both", expand="True")
-
-       CTkLabel(self.right_frame, text="LogiTalk").pack(pady=60)
-
-       self.name_entry = CTkEntry(self.right_frame, placeholder_text="☻ ім`я")
-       self.name_entry.pack(fill="x", padx=10, pady=10)
-       img_ctk = CTkImage(light_image=Image.open("img/setting.png"), size=(20, 20))
-       self.settings_button = CTkButton(self.right_frame, text="Налаштування", image=img_ctk, compound="left")
-       self.settings_button.pack(fill="x", padx=10, pady=10)
-
-       self.connect_button = CTkButton(self.right_frame, text="УВІЙТИ")
-       self.connect_button.pack(fill="x", padx=10, pady=5)
-
-
-window = AuthWindow()
-window.mainloop()
+# Відповідність клавіш і нот
+KEYS = {
+    "1": "c6.mp3",
+    "2": "d6.mp3",
+    "3": "e6.mp3",
+    "4": "f6.mp3",
+    "5": "g6.mp3",
+    "6": "a6.mp3",
+    "7": "b6.mp3",
+}
