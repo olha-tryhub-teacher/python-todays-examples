@@ -1,55 +1,17 @@
-from pygame import *
-from settings import *
-from sounds import load_sounds
-from keys import draw_keys, create_key_rects
+import pygame
 
-init()
-screen = display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-display.set_caption("Piano Game")
-
-sounds = load_sounds(KEYS)
-key_rects = create_key_rects(len(KEYS))
-keys_list = list(KEYS.keys())
-pressed_keys = set()
-
-running = True
-while running:
-    screen.fill(WHITE)
-
-    # клавіші
-    draw_keys(screen, key_rects, pressed_keys)
-
-    display.flip()
-
-    for e in event.get():
-        if e.type == QUIT:
-            running = False
-
-        # клавіатура
-        if e.type == KEYDOWN:
-            k = key.name(e.key)
-            if k in sounds:
-                sounds[k].play()
-                idx = keys_list.index(k)
-                pressed_keys.add(idx)
-
-        if e.type == KEYUP:
-            k = key.name(e.key)
-            if k in sounds:
-                idx = keys_list.index(k)
-                if idx in pressed_keys:
-                    pressed_keys.remove(idx)
-
-        # миша по клавішах
-        if e.type == MOUSEBUTTONDOWN:
-            pos = e.pos
-            for i, rect in enumerate(key_rects):
-                if rect.collidepoint(pos):
-                    sounds[keys_list[i]].play()
-                    pressed_keys.add(i)
-
-        if e.type == MOUSEBUTTONUP:
-            pos = e.pos
-            for i, rect in enumerate(key_rects):
-                if i in pressed_keys and rect.collidepoint(pos):
-                    pressed_keys.remove(i)
+class Slider:
+    def __init__(self, x, y, width, min_value=0, max_value=100,
+                 knob_radius=15, # один рядок
+                 track_color=(180, 180, 180), knob_color=(0, 120, 255), # один рядок
+                 font=None, text_color=(0, 0, 0)): # один рядок
+        self.rect = pygame.Rect(x, y, width, 5)  # доріжка
+        self.knob_radius = knob_radius
+        self.knob_x = x  # початкове положення повзунка
+        self.dragging = False
+        self.min_value = min_value
+        self.max_value = max_value
+        self.track_color = track_color
+        self.knob_color = knob_color
+        self.font = font
+        self.text_color = text_color
