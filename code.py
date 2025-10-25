@@ -1,18 +1,13 @@
-from customtkinter import *
-from PIL import Image
+def change_btn_pos():
+   x_random = randint(0, win.winfo_width() - btn_no.winfo_width())
+   y_random = randint(0, win.winfo_height() - btn_no.winfo_height())
+   btn_no.place(x=x_random, y=y_random)
 
 
-window = CTk()
-window.geometry("400x400")
-window.title("Моє перше зображення в вікні")
-
-
-img = Image.open("img1111.png")
-img_ctk = CTkImage(light_image=img, size=(350, 450))
-
-
-label = CTkLabel(window, text="", image=img_ctk)
-label.pack(pady=10)
-
-
-window.mainloop()
+def show_win():
+   win2 = CTk()
+   win2.geometry("200x100")
+   win2.title("Мої вітання")
+   label_win = CTkLabel(win2, text="Дуже приємно чути!!!", font=("Arial", 14, "bold"))
+   label_win.pack(pady=20)
+   win2.mainloop()
