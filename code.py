@@ -1,74 +1,40 @@
+# УВАГА! ТЕМИ ШУКАЄМО ЗА ПОСИЛАННЯМ:
+# https://github.com/a13xe/CTkThemesPack/tree/main/themes
+
 from customtkinter import *
-import threading  # ⬅️
-from socket import *  # ⬅️
-
-name = "Оля"
+from PIL import Image
 
 
-class MainWindow(CTk):
+class AuthWindow(CTk):
     def __init__(self):
         super().__init__()
-        self.geometry("400x300")
-        # main
-        self.username = name
-        self.name_lbl = CTkLabel(self, text="Привіт, " + self.username)
-        self.name_lbl.pack()
-        self.chat_field = CTkScrollableFrame(self)
-        self.chat_field.pack(fill="both", expand=True)
+        self.geometry("700x400")
+        self.title("Вхід")
+        self.resizable(True, False)
+        self.name = ""
 
-        self.bottom_row = CTkFrame(self)
-        self.bottom_row.pack(fill="x")
+        # --- ліва частина --
+        self.left_frame = CTkFrame(self)
+        self.left_frame.pack(side="left", fill="both")
 
-        self.message_entry = CTkEntry(self.bottom_row,
-                                      placeholder_text="Введіть повідомлення:",
-                                      height=40)
-        self.message_entry.pack(fill="x", side="left", expand=True)
-        self.send_button = CTkButton(self.bottom_row,
-                                     text=">",
-                                     width=50,
-                                     height=40,
-                                     command=self.send_message)  # ⬅️⬅️⬅️
-        self.send_button.pack(side="left")
+        # ТУТ ЗМІНЮЄМО КАРТІНКУ ДЛЯ ФОНУ
+        img_ctk = CTkImage(light_image=Image.open("bg.png"), size=(450, 400))
+        self.img_label = CTkLabel(self.left_frame, text="Welcome", image=img_ctk, font=("Helvetica", 50, "bold"))
+        self.img_label.pack()
 
-        self.connect()
+        # -- ПРАВА ЧАСТИНА----
+        self.right_frame = CTkFrame(self)
+        self.right_frame.pack_propagate(False)
+        self.right_frame.pack(side="right", fill="both", expand="True")
 
-    def connect(self):
-        try:
-            self.sock = socket(AF_INET, SOCK_STREAM)
-            self.sock.connect(("localhost", 8080))
-            self.sock.send(self.username.encode())
-            threading.Thread(target=self.recv_message,
-                             daemon=True).start()
-        except Exception as e:  # ⬅️
-            self.add_message(f"Не вдалося підключитися"
-                             f"до сервера: {e}")
+        CTkLabel(self.right_frame, text="LogiTalk").pack(pady=60)
 
-    def add_message(self, text):
-        label = CTkLabel(self.chat_field, text=text,
-                         anchor="w", justify="left",
-                         wraplength=300)
-        label.pack(fill="x", anchor="w", pady=2, padx=5)
-        self.chat_field._parent_canvas.yview_moveto(1.0)  # прокрутка вниз
+        self.name_entry = CTkEntry(self.right_frame, placeholder_text="☻ ім`я")
+        self.name_entry.pack(fill="x", padx=10, pady=10)
 
-    def send_message(self):
-        message = self.message_entry.get()
-        if message and self.sock:
-            self.sock.send(message.encode())
-        self.message_entry.delete(0, END)
+        self.connect_button = CTkButton(self.right_frame, text="УВІЙТИ", command=self.open_messenger)
+        self.connect_button.pack(fill="x", padx=10, pady=5)
 
-    def recv_message(self):
-        while True:
-            try:
-                message = self.sock.recv(1024).decode().strip()
-                if message:
-                    self.add_message(message)
-                else:
-                    break
-            except Exception as e:
-                self.add_message("Від'єднано від сервера")
-                self.add_message(e)
-                break
-
-
-main_win = MainWindow()
-main_win.mainloop()
+    def open_messenger(self):
+        self.name = self.name_entry.get()
+        self.destroy()
